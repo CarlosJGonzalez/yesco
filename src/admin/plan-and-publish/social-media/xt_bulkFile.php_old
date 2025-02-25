@@ -1,0 +1,204 @@
+<?php
+session_start();
+include ($_SERVER['DOCUMENT_ROOT']."/includes/connect.php");
+
+function checkaddslashes($str){       
+    if(strpos(str_replace("\'",""," $str"),"'")!=false)
+        return addslashes($str);
+    else
+        return $str;
+}
+
+function utf8_fopen_read($fileName) {
+    $fc = iconv('windows-1250', 'utf-8', file_get_contents($fileName));
+    $handle=fopen("php://memory", "rw");
+    fwrite($handle, $fc);
+    fseek($handle, 0);
+    return $handle;
+} 
+
+/**
+* @param string $filename
+* @param string $delimiter
+*
+* @return array|bool
+*/
+function csv_to_array($filename = '', $delimiter = ',', $enclosure='"', $escape = '\\') {
+    if (!file_exists($filename) || !is_readable($filename))
+        return false;
+
+    $header = null;
+    $data = array();
+    $info = array();
+
+    if (($handle = utf8_fopen_read($filename)) !== false) {
+   // if (($handle = fopen($filename, 'r')) !== false) {
+    	 
+        while (($data = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+	        if(!$header){
+	        	$info['header']= $data;
+	        	$header=1;
+	        }else{	        	
+	        	$data1 = array_filter($data);
+
+	        	if(count($data1)){
+					array_push($info,$data);
+	        	}
+	        	
+	        }
+	        $row++;
+
+    	}
+    fclose($handle);
+    }
+    return $info;
+}
+
+
+$file= $_FILES['documents'];
+
+if ($file['error'] == 0 ){
+	$data = csv_to_array($file['tmp_name'], ',');
+
+	
+	$header= $data['header'];
+	unset($data['header']);
+
+	//Headers
+	$clumns="(id,";
+	$date_position=0;
+	foreach ($header as $key => $value) {
+		if($value == 'date'){
+			$date_position = $key;
+		}
+
+		$clumns.=$value.",";
+	}
+
+	$clumns=substr($clumns, 0, -1);
+	$clumns.=")";
+
+	//Values
+	$all_values="";
+	$count =0;
+
+	$rautoId = $db->rawQueryOne("SELECT MAX(id) as id FROM ".$_SESSION['database'].".social_media__local_posts");
+	
+	$nextId = $rautoId['id'];
+	$save_ids = array();
+	foreach ($data as $value) {
+		$val="(";
+		$nextId += 1;
+		nextId($db,$nextId);
+		$val.="$nextId ,";
+		$save_ids[] = $nextId;
+		foreach ($value as $key => $tmp) {
+
+			if($key == $date_position){		
+				$date_new = date('Y-m-d H:i:s', strtotime($tmp));
+				$val.="\"".checkaddslashes($date_new)."\"";
+				$val.=",";
+
+			}else{
+				//$tmp1=mysqli_real_escape_string($conn,$tmp);
+				$tmp1=$db->escape($tmp);
+				$val.="\"".checkaddslashes($tmp1)."\"";
+				$val.=",";
+			}
+			
+		}
+
+		$val=substr($val, 0, -1);
+		$val.="),";
+		$all_values.=$val;
+		$count++;
+	}
+	
+	$all_values=substr($all_values, 0, -1);
+
+	$tmp=explode(".",$file['name']);
+	$type=explode("_",$tmp[0]);	
+	    
+	
+	$sql=null;
+	$case = $false;
+	if(count($type) > 0){
+		$case=end($type);
+		
+		switch ($case) {
+			case 'local':
+				$sql="INSERT INTO ".$_SESSION['database'].".social_media__local_posts $clumns VALUES $all_values;";	
+				break;
+			case 'corp':
+				$sql="INSERT INTO ".$_SESSION['database'].".social_media_posts $clumns VALUES $all_values;";
+				break;
+		}
+	}
+
+	if($sql){
+		try{
+		
+			$db->startTransaction();
+			$db->rawQuery($sql);
+			$db->commit();
+
+			if($case == 'local'){
+				$storeidExcl = getExclusionAllPost($db,$_SESSION['client']);
+				sendToOptOut($db,$storeidExcl,$save_ids);
+			}
+			
+			$_SESSION["success"]="Your publications were added.";
+
+		} catch (Exception $e) {
+			$_SESSION["error"]="There was an error adding your Posts";
+		}
+
+	}else{
+		$_SESSION["error"]="Sorry please check your file name";
+	}
+	
+
+}else{
+	$_SESSION["error"]="There was an error adding your Posts";
+}
+header("location:/admin/plan-and-publish/social-media/?".$_SERVER['QUERY_STRING']);
+exit;
+
+function sendToOptOut(&$db,$storeidExcl,$postIds){
+	$data= array();
+	foreach ($storeidExcl as $storeid) {
+		$storeid = $storeid['storeid'];
+
+		foreach ($postIds as $postid) {
+			$data[] = array(
+							'id' => $postid,
+							'storeid' => $storeid,
+							'optout' => 1,
+							'date' => $db->now(),
+							);
+		}
+	}
+	$table = $_SESSION['database'].'.social_media_local_posts_optout';
+	$ids = $db->insertMulti($table, $data);
+	return $ids;
+}
+
+function getExclusionAllPost(&$db,$client,$storeid = null){
+	$db->where('client',$client)->where('active',1);
+
+	if( isset($storeid) ){
+		$db->where('storeid',$storeid);
+	}
+
+	return $db->get('das_contract.exclusion_post');
+}
+function nextId(&$db,&$lastId){
+	$rautoId = $db->rawQueryOne("SELECT id FROM ".$_SESSION['database'].".social_media_local_posts_store where id = '$lastId'");
+	$rautoId2 = $db->rawQueryOne("SELECT id FROM ".$_SESSION['database'].".social_media_posts where id = '$lastId'");
+	if(isset($rautoId['id']) || isset($rautoId2['id'])){
+		$lastId +=1;
+		$lastId = nextId($db,$lastId);
+	}
+	return $lastId;
+
+}

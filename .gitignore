@@ -1,0 +1,4 @@
+src/googleads-php-lib
+*.log
+*.db
+src/includes/clickup

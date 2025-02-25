@@ -1,0 +1,7 @@
+ul li {
+	font-family: "Century Gothic", Arial, Sans-serif; font-size: 15px;  margin-bottom: 15px;
+}
+
+ul.no-pad li {
+	margin-bottom: 0px;
+}

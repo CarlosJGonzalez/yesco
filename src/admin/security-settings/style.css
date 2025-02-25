@@ -1,0 +1,162 @@
+.box{
+	-moz-border-radius: 5px;
+	-webkit-border-radius:5px;
+	border-radius: 5px;
+	background-color:#FFF;
+	overflow:hidden;
+	margin-top:15px;
+}
+.box h2{
+	background-color: #0067b1;
+	padding:10px;
+	color:#FFF;
+	font-size:20px;
+	-moz-border-radius: 5px 5px 0 0;
+	-webkit-border-radius: 5px 5px 0 0;
+	border-radius: 5px 5px 0 0;
+	margin: 0;
+	cursor:pointer;
+}
+.box h3{
+	text-align:left;
+	margin-top:0;
+	color:#444444;
+	font-size:20px;
+	font-family:"Helvetica Neue Bold";
+	margin-bottom:10px;
+	overflow:hidden;
+}
+.box > div{
+	padding:15px;
+}
+.box.closed > div{
+	display:none;
+}
+#listings .box h2{
+	margin-bottom:15px;
+}
+
+/*.box i{
+	color:#e1e1e1;
+}*/
+.box h2 i{
+	color:#fff;
+}
+.box i.fa-5x{
+	display:block;
+}
+.box span:not(.input-group-addon){
+	font-size:20px;
+}
+
+.box span.float {
+	font-size: 14px;
+	margin: 0 0 0 10px;
+}
+
+.box span.btn{
+	font-size:14px;
+}
+.box .mce-btn .mce-txt{
+	font-size:14px;
+}
+.box.noMarg{
+	margin-top:0;
+}
+
+.login .field{
+	margin-bottom:10px;
+}
+
+.field{
+	margin-bottom:15px;
+}
+.field label{
+	-moz-border-radius: 5px 5px 0 0;
+	-webkit-border-radius:5px 5px 0 0;
+	border-radius: 5px 5px 0 0;
+	font-size:14px;
+	color:#666666;
+	background-color:#f4f4f4;
+	padding:5px 10px;
+	margin:0;
+	font-weight: normal;
+}
+.field input, .main .field textarea{
+	border:1px solid #f4f4f4;
+	-moz-border-radius: 0px 5px 5px 5px !important;
+	-webkit-border-radius:0px 5px 5px 5px !important;
+	border-radius: 0px 5px 5px 5px !important;
+	padding:5px 10px;
+	box-shadow:none;
+}
+.field .input-group-addon{
+	border:none;
+	background-color:#FFF;
+	
+}
+.field i{
+	color:#666666;
+}
+.field.gray label {
+    	background-color: inherit;
+    	color: #fff;
+    	display: block;
+}
+.field.gray {
+   	background-color: #333;
+    	border-radius: 5px;
+	padding-bottom:5px;
+	overflow:hidden;
+}
+/*Zebra Striped Table*/
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	width: 100%;
+	border: 1px solid #ddd;
+}
+
+th, td {
+	text-align: left;
+	padding: 16px;
+}
+
+tr:nth-child(even) {
+	background-color: #f2f2f2
+}
+tr.hidden {
+	display: none;
+}
+/*End Zebra Striped Table*/
+
+.design {
+    	border: 1px solid #ccc;
+    	-webkit-border-radius: 5px;
+    	-moz-border-radius: 5px;
+    	border-radius: 5px;
+   	color: #666;
+    	font-size: 14px;
+    	padding: 6px;
+    	width: 100%;
+}
+
+select.design {
+    	-moz-appearance: none;
+    	background: #fff url("/img/select.png") no-repeat scroll 96% center;
+    	padding: 6px 20px 6px 6px;
+}
+
+select {
+	-moz-border-radius: 5px;
+	-webkit-border-radius:5px;
+	border-radius: 5px;
+	color:#666;
+	padding: 3px 20px 3px 3px;
+	font-size: 14px;
+	border: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	background: url("/img/select.png") 96% no-repeat #eee;
+} 

@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{SERVER_PORT} 80
+RewriteRule (.*) https://localyesco.com/$1 [R=301,QSA,L,NC]
+

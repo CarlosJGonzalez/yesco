@@ -1,0 +1,29 @@
+<?
+include ($_SERVER['DOCUMENT_ROOT']."/connect.php");
+include ($_SERVER['DOCUMENT_ROOT']."/functions.php");
+
+session_start();
+$owner_name =filter_var($_POST['name'], FILTER_SANITIZE_STRING);
+$company_name =filter_var($_POST['companyname'], FILTER_SANITIZE_STRING);
+$body =filter_var($_POST['body'], FILTER_SANITIZE_STRING);
+$heading =filter_var($_POST['header'], FILTER_SANITIZE_STRING);
+
+
+if($_POST['default']==1){
+	$sql= "insert into review_template (storeid,date,owner_name,company_name,heading,body) values ('".$_SESSION['storeid']."',NOW(),'".$owner_name."','".$company_name."','".$heading."','".$body."')";
+	if(mysqli_query($conn, $sql)){
+		$_SESSION['success']="Your template has been saved.";
+		track($_SESSION["username"],$_SESSION["storeid"],"review_template",$sql);
+	}else
+		$_SESSION['error'] = "Sorry, there was an error saving your template.";
+}else{
+	$sql= "update review_template set date=NOW(),owner_name='".$owner_name."',company_name='".$company_name."',body='".$body."',heading='".$heading."' where storeid='".$_SESSION['storeid']."'";
+
+	if(mysqli_query($conn, $sql)){
+		$_SESSION['success']="Your template has been saved.";
+		track($_SESSION["username"],$_SESSION["storeid"],"review_template",$sql);
+	}else
+		$_SESSION['error'] = "Sorry, there was an error saving your template.";
+}
+
+header("location:/reviews/upload-customers.php");

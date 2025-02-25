@@ -1,0 +1,195 @@
+<?
+include ($_SERVER['DOCUMENT_ROOT']."/connect.php");
+include ($_SERVER['DOCUMENT_ROOT']."/functions.php");
+include ($_SERVER['DOCUMENT_ROOT']."/corebridge/includes/functions.php");
+session_start();
+$apiKey = '49898dd89044c0fc823b4735f320ddeb-us17';
+if($_GET['action']=="delete"){
+	$sql= "delete from review_recipient where id in (".$_GET['values'].")";
+	if(mysqli_query($conn, $sql)){
+		$_SESSION['success']="Your changes have been saved.";
+		track($_SESSION["username"],$_SESSION["storeid"],"review_template",$sql);
+	}else
+		$_SESSION['error'] = "Sorry, there was an error saving your changes.";
+}else if($_GET['action']=="send"){
+	$sql = "SELECT * FROM ".$_SESSION['database'].".locationlist where storeid='".$_SESSION['storeid']."' limit 1";
+	$result = $conn->query($sql);
+
+	//$dt = new DateTime(filter_var($_POST['registration_date'], FILTER_SANITIZE_STRING) . ' ' . filter_var($_POST['registration_time'], FILTER_SANITIZE_STRING));
+	//$dt->setTimezone(new DateTimeZone('UTC'));
+	//$sched_date = $dt->format('Y-m-d H:i:s');
+
+	if ($result->num_rows > 0){
+		$row = $result->fetch_assoc();
+		if(!$row['mailchimp_listid']){
+			//Create list
+			$url = 'lists/';
+			$json = json_encode([
+				'name' => $_SESSION['client']."-".$row['storeid'],
+				'contact'  => [
+					'company'     => $_SESSION['client']." ".$row['companyname'],
+					'address1'     => $row['address'],
+					'city'     => $row['city'],
+					'state'     => $row['state'],
+					'zip'     => $row['zip'],
+					'country'     => "US",
+				],
+				'permission_reminder' => "You are receiving this as a test.",
+				'campaign_defaults'  => [
+					'from_name'     => $client." ".$row['companyname'],
+					'from_email'     => $row['email'],
+					'subject'     => "Welcome to ".$client." ".$row['companyname'],	
+					'language'     => "EN",
+				],
+				'email_type_option' => true
+			]);
+			$result = mailChimp($apiKey,"POST",$url,$json);
+			
+			$listid=$result["id"];
+			$sql = "UPDATE ".$_SESSION['database'].".locationlist set mailchimp_listid='".$listid."' where storeid='".$_SESSION['storeid']."'";
+			mysqli_query($conn, $sql);
+		}
+		else
+			$listid=$row['mailchimp_listid'];
+		
+		$yelpurl = $row['yelp'];
+		$sql_users = "select group_concat(email) as emails from review_recipient where id in (".$_GET['values'].")";
+		$result_users = $conn->query($sql_users);
+		if ($result_users->num_rows > 0)
+			$row_users = $result_users->fetch_assoc();
+		$to_email = $row_users['emails'];
+
+		$sql_store_template = "SELECT * from review_template where storeid='".$_SESSION['storeid']."' limit 1";
+		$result_store_template = $conn->query($sql_store_template);
+		$default=0;
+		if ($result_store_template->num_rows == 0){
+			$sql_store_template = "SELECT * from review_template where storeid='' limit 1";
+			$result_store_template = $conn->query($sql_store_template);		
+			$default=1;
+		}
+
+		if ($result_store_template->num_rows > 0)
+			$t = $result_store_template->fetch_assoc();
+		$sql_review = "select concat('https://search.google.com/local/writereview?placeid=',place_id) as googleurl,concat(link_page,'reviews/') as fburl from facebook_post.gmb_locations a,facebook_post.fb_pages b where a.client='".$_SESSION['client']."' and a.store_id='".$_SESSION['storeid']."' and b.client=concat(a.client,'-',a.store_id) and a.store_id=b.store_id";
+		$result_review = $conn->query($sql_review);
+		if ($result_review->num_rows > 0){
+			$review = $result_review->fetch_assoc();
+			$google_url = $review['googleurl'];
+			$fb_url = $review['fburl'];
+		}
+		
+		$templates = '<!doctype html><html><head><meta charset="utf-8"><title>Invitation</title><style>body {background: #dfdede;height: 100%;width: 100%;margin: 0;padding: 0;}</style></head><body><table cellpadding="0" cellspacing="0" align="center" width="100%" bgcolor="dfdede"><tr><td height="30">&nbsp;</td></tr><tr> <td> <!--top--> <table cellpadding="0" cellspacing="0" align="center" width="600" style="margin: 0 auto;"> <tr bgcolor="#ffffff"> <td> <img src="http://'.$_SERVER['HTTP_HOST'].'/email/review/img/logo.png" width="305" style="display: block;" /> </td><td width="273" align="center"><span style="font-family: \'Century Gothic\', Helvetica, Arial, sans-serif; font-size: 12px; line-height: 14px; color: #199999;"><strong>'.$row['fname1']. ' ' .$row['lname1'].'</strong>, '.$row['companyname'].'</span></td><td width="22"> <img src="http://'.$_SERVER['HTTP_HOST'].'/email/review/img/header-right.jpg" width="22" style="display: block;" /> </td> </tr><tr><td>&nbsp;</td></tr></table>  </td> </tr><tr> <td> <table cellpadding="0" cellspacing="0" align="center" width="600" style="margin: 0 auto;" bgcolor="#199999"><tr><td colspan="3"><img src="http://'.$_SERVER['HTTP_HOST'].'/email/review/img/red-top.jpg" style="display: block;" /></td></tr><tr><td colspan="3">&nbsp;</td></tr><tr><td colspan="3" align="center"><img src="http://'.$_SERVER['HTTP_HOST'].'/email/review/img/bubble.png" style="display: block;" /></td></tr><tr><td colspan="3">&nbsp;</td></tr><tr><td colspan="3" align="center"><img src="http://'.$_SERVER['HTTP_HOST'].'/email/review/img/how.png" style="display: block;" /></td></tr><tr><td colspan="3" height="30">&nbsp;</td></tr><tr><td width="30">&nbsp;</td><td width="540" align="center"><span style="font-family: \'Century Gothic\', Helvetica, Arial, sans-serif; font-size: 17px; line-height: 28px; color: #ffffff;"><strong style="font-size: 24px; line-height: 34px;">'.$t['heading'].'</strong><br><br>'.$t['body'].' </span></td><td width="30">&nbsp;</td></tr><tr><td colspan="3" height="30">&nbsp;</td></tr><tr><td colspan="3" align="center"><a href="'.$fb_url.'"><img src="http://'.$_SERVER['HTTP_HOST'].'/email/review/img/facebook.png" /></a>&nbsp;&nbsp;&nbsp;<a href="'.$google_url.'"><img src="http://'.$_SERVER['HTTP_HOST'].'/email/review/img/google.png" /></a>&nbsp;&nbsp;&nbsp;</td></tr><tr><td colspan="3" height="50">&nbsp;</td></tr></table></td></tr><tr> <td> <table cellpadding="0" cellspacing="0" align="center" width="600" style="margin: 0 auto;" bgcolor="dfdede"><tr><td colspan="5"><img src="http://'.$_SERVER['HTTP_HOST'].'/email/review/img/bottom.jpg" style="display: block;" /></td></tr></table></td></tr> <tr> <td colspan="3" height="40">&nbsp;</td> </tr></table></body></html>';
+		
+		
+		//Add users to list	
+		$URL = 'https://' . substr($apiKey,strpos($apiKey,'-')+1) . '.api.mailchimp.com/3.0/batches';
+		$data = new stdClass();
+		$data->operations = array();
+		//$to_email = 'seema@das-group.com'; // comment before going live
+		$to_email = explode(',', $to_email);
+		foreach ( $to_email as $user ) {
+			$batch =  new stdClass();
+			$batch->method = 'POST';
+			$batch->path = 'lists/' . $listid . '/members';
+			$batch->body = json_encode( array(
+				'email_address' => $user,
+				'status'        => 'subscribed'
+			) );
+			$data->operations[] = $batch;
+		}
+		$data = json_encode($data);
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL,$URL);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);                                                                                                         
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+			'Authorization: Basic '.$apiKey,
+			'Content-Type: application/json')                                                                       
+		);  																														 
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);          
+		$result = curl_exec($ch);
+		
+		sleep(5);	
+		//Create Segment
+		$url = 'lists/'.$listid.'/segments/';
+		$json = json_encode([
+			'name' => 'Review Email '.strtotime(date("Y-m-d h:i:s")),
+			'static_segment' => $to_email,
+		]);
+		$result = mailChimp($apiKey,"POST",$url,$json);
+		$segmentid=$result["id"];
+
+		if(!$row['mailchimp_templateid']){
+		//Create template
+		$url = 'templates/';
+		$json = json_encode([
+			'name' => "Review Template",
+			'html' => $templates,
+		]);
+		$result = mailChimp($apiKey,"POST",$url,$json);
+		$templateid=$result["id"];
+		$sql = "UPDATE ".$_SESSION['database'].".locationlist set mailchimp_templateid='".$templateid."' where storeid='".$_SESSION['storeid']."'";
+		mysqli_query($conn, $sql);
+		}else{
+			//Update Template
+			$templateid = $row['mailchimp_templateid'];
+			$templateid = (int)$templateid;
+			$url = 'templates/'.$templateid;
+			$json = json_encode([
+				'name' => "Review Template",
+				'html' => $templates,
+			]);
+			$result = mailChimp($apiKey,"PATCH",$url,$json);
+		}
+		$templateid = (int)$templateid;
+
+		$url = 'campaigns/';
+		$json = json_encode([
+			'type' => "regular",
+			'recipients' => [
+				"list_id"=>$listid,
+				"segment_opts" => [
+					"saved_segment_id"=>$segmentid
+				]
+			],
+			'settings' => [
+				"subject_line"=>"Request for Review",
+				"from_name"=>$row['fname1']. ' ' .$row['lname1'],
+				"reply_to"=>"no-reply@das-group.com",
+				"auto_footer"=>false,
+				"template_id"=>$templateid,
+			],
+			'tracking' => [
+				"opens"=>true,
+				"html_clicks"=>true,
+				"text_clicks"=>true,
+				"goal_tracking"=>true,
+			]
+		]);
+
+		$result = mailChimp($apiKey,"POST",$url,$json);
+
+		$campaignid=$result["id"];
+		sleep(5);
+		$url = 'campaigns/'.$campaignid.'/actions/send/';
+
+		/*$url = 'campaigns/'.$campaignid.'/actions/schedule/';
+		$json = json_encode([
+			'schedule_time' => $sched_date
+		]);*/
+		
+		$result = mailChimp($apiKey,"POST",$url,$json);
+		$sqlins = "insert into ".$_SESSION['database'].".email_campaigns(campaignid,storeid,date) values('".$campaignid."','".$_SESSION['storeid']."',now())";
+		$result_ins = $conn->query($sqlins);
+	}
+
+	$sql= "update review_recipient set sent_flag = 'S' where id in (".$_GET['values'].")";
+	if(mysqli_query($conn, $sql)){
+		$_SESSION['success']="Your email has been scheduled.";
+		track($_SESSION["username"],$_SESSION["storeid"],"review_template",$sql);
+	}else
+		$_SESSION['error'] = "Sorry, there was an error scheduling your email.";
+}
+
+header("location:/reviews/upload-customers.php");

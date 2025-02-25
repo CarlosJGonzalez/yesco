@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+  <head>
+	<link rel="stylesheet" href="/css/jquery.datetimepicker.min.css">
+	<link rel="stylesheet" href="/css/fresco.css">
+	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+	<link href="/css/buzina-pagination.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="/css/checkbox.css">
+
+    <?php 
+	include ($_SERVER['DOCUMENT_ROOT']."/includes/head.php"); 
+	
+	if(!(roleHasPermission('show_plan_and_publish', $_SESSION['role_permissions']))){
+		header('location: /');
+		exit;
+	}
+	?>
+
+    <title>Plan and Publish | <?php echo CLIENT_NAME; ?></title>
+    <style type="text/css">
+    	.none_upload{ display:none;text-align:center;}
+        .loader {
+              position: fixed;
+              left: 0px;
+              top: 0px;
+              width: 100%;
+              height: 100%;
+              z-index: 9999;
+              background: url('/../../yextAPI/spinner_preloader.gif') 50% 50% no-repeat rgba(255, 255, 255, 0.3);
+            }
+    </style>
+  </head>
+  <body class="bg-light cbp-spmenu-push">
+    <?php include ($_SERVER['DOCUMENT_ROOT']."/includes/top.php"); ?>
+
+    <div class="container-fluid">
+      <div class="row">
+        <?php include ($_SERVER['DOCUMENT_ROOT']."/includes/nav.php"); ?>
+        <div id="spinner_loading" class="none_upload loader"></div>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 p-0">
+        	<?php include $_SERVER['DOCUMENT_ROOT']."/includes/alerts.php"; ?>
+			<div class="p-0 border-bottom">
+				<div class="border-bottom-dotted d-sm-flex d-block align-items-center clearfix py-2 px-4">
+					<h1 class="h2 font-light mb-0 text-center text-sm-left"><i class="far fa-calendar-alt mr-2"></i> Social Media Calendar</h1>
+					<div class="flex-grow text-center text-sm-right">
+						<a href="#" title="Add Post" data-toggle="modal" data-target="#addNewPost"><i class="fas fa-2x text-muted fa-plus-circle"></i></a>
+					</div>
+				</div>
+				
+				<div class="py-2 px-4 d-block d-xl-flex align-items-center">
+					<div class="d-flex align-items-center">
+						<label class="label cusor-pointer d-flex text-center mb-0" for="post_all">
+							<input class="label__checkbox" type="checkbox" name="post_all" value="post_all" type="checkbox" id="post_all" />
+							<span class="label__text d-flex align-items-center">
+							  <span class="label__check d-flex rounded-circle mr-2">
+								<i class="fa fa-check icon small"></i>
+							  </span>
+							  <span class="text-uppercase small letter-spacing-1 d-inline-block" id="selectLabel">Select All </span>
+							</span>
+						</label>
+						<button class="btn btn-sm btn-secondary ml-4" id="optoutall" disabled>Opt Out of Selected </button>
+						<div class="ml-auto">
+							<a class="small text-blue d-block d-lg-none" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">Advanced Search</a>
+						</div>
+					</div>
+					<div class="ml-auto mt-3 mt-xl-0">
+						<div class="collapse show w-100" id="collapseExample">
+							<div class="d-inline-block mr-2">
+								<span class="letter-spacing-1 text-uppercase small">Sort By: </span>
+								<select name="sort" class="d-inline-block form-control form-control-sm w-auto rounded-pill custom-select-arrow pr-4">
+									<option value="desc">Date (Newest to Oldest)</option>
+									<option value="asc">Date (Oldest to Newest)</option>
+								</select>
+							</div>
+							<div class="d-inline-block mr-2 mt-2 mt-sm-0">
+								<span class="letter-spacing-1 text-uppercase small">Show: </span>
+								<select name="show" class="d-inline-block form-control form-control-sm w-auto rounded-pill custom-select-arrow pr-4">
+									<option value="">All Portals</option>
+									<option value="Facebook">Facebook</option>
+									<option value="Twitter">Twitter</option>
+									<option value="Linkedin">Linkedin</option>
+									<option value="Google">Google</option>
+									<option value="Instagram">Instagram</option>
+								</select>
+							</div>
+	<!--
+							<div class="d-inline-block search-post">
+								<span class="letter-spacing-1 text-uppercase small">Search:</span>
+								<div class="d-inline-block">
+									<div class="input-group input-group-sm">
+									  <div class="input-group-prepend">
+										<span class="input-group-text border-right-0 bg-white pr-0" id="basic-addon1"><i class="fas fa-search"></i></span>
+									  </div>
+									  <input type="text" class="form-control border-left-0" placeholder="Search for a post..." aria-label="Search" aria-describedby="basic-addon1" id="searchPost">
+									</div>
+								</div>
+							</div>
+	-->
+						</div>
+					</div>
+				</div>
+
+			</div>
+			<form action="xt_add.php" method="POST" enctype="multipart/form-data" id="add_post_frm">
+				<div class="modal fade" id="addNewPost" tabindex="-1" role="dialog" aria-labelledby="addNewPostTitle" aria-hidden="true">
+					<div class="modal-dialog modal-dialog-centered" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="addNewPostTitle">Add Post</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								  <span aria-hidden="true">&times;</span>
+								</button>
+					  		</div>
+							<div class="modal-body">
+								<div class="form-group">
+									<label class="text-uppercase small">Post Date </label>
+									<input type="text" name="postdate" required class="form-control datetimepicker">
+								</div>
+								<div class="alert alert-warning" role="alert">
+								  The post needs to be entered <strong>24 hours</strong> prior to the post date!
+								</div>
+								<div class="form-group">
+									<label class="text-uppercase small">Link </label>
+									<input type="text" name="postlink" required class="form-control">
+								</div>
+								<div class="form-group">
+									<label class="text-uppercase small">Post Content </label>
+									<textarea name="strpost" class="form-control" required></textarea>
+								</div>
+								<div class="form-group">
+									<label class="text-uppercase small">Image </label>
+									<div class="input-group mb-3">
+									
+									  <div class="custom-file">
+										<input type="file" name="fileToUpload[]" class="custom-file-input" id="inputGroupFile01" multiple accept="video/mp4,video/mov,image/png, image/jpg, image/jpeg">
+										<label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+									  </div>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="text-uppercase small">Portal </label>
+									<select required name="portal" class="form-control custom-select-arrow pr-4">
+										<option value="">All Portals</option>
+										<option value="Facebook" >Facebook</option>
+										<option value="Linkedin" >Linkedin</option>
+										<option value="Twitter" >Google</option>
+									</select>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+								<input type="submit" class="btn bg-blue btn-sm text-white" value="Add Post">
+							</div>
+						</div>
+				  	</div>
+				</div>
+
+			
+			<div class="bg-white py-3 px-4 pb-5">
+				<div class="posts">
+				
+				</div>			
+			</div>
+
+        </main>
+      </div>
+    </div>
+
+    <?php include ($_SERVER['DOCUMENT_ROOT']."/includes/footer.php"); ?>
+	<script src="/js/jquery.datetimepicker.full.min.js"></script>
+	<script type="text/javascript" src="/js/fresco.js"></script>
+	<script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+	<script src="/js/buzina-pagination.min.js"></script>
+
+	<script>
+		var filters = [];
+		$( document ).ready(function() {
+			get_posts("asc");
+			$('.datetimepicker').datetimepicker({
+				minDate:"+1970/01/02",
+				format:'m/d/Y g:i a',
+				formatTime:'g:i a'
+			});
+		});
+		$( "select[name=sort]" ).change(function() {
+			get_posts($("select[name=sort]").val(),$("select[name=show]").val(),$("#searchPost").val());
+		});
+		$( "select[name=show]" ).change(function() {
+			get_posts($("select[name=sort]").val(),$("select[name=show]").val(),$("#searchPost").val());
+		});
+
+		$( "#add_post_frm" ).submit(function( event ) {
+                  
+            $('#spinner_loading').removeClass("none_upload");
+            $('#updatemediapost_modal').modal('hide');
+            $(this).submit();
+
+            event.preventDefault();
+        });
+		
+		function get_posts(sort="",portal="",search=""){
+			$.ajax({
+                type: "POST",
+                url: "get_posts.php",
+                data: {"sort":sort,"portal":portal,"search":search},
+                cache: false,
+				beforeSend:function(html){
+                    $(".posts").html('<div class="text-center"><img src="/img/loading.svg"></div>');
+                },
+                success: function(html){
+                    $(".posts").html(html);
+					$('#posts-pag').buzinaPagination({
+						itemsOnPage: 10
+					  });
+                },
+				error: function(xhr, status, error) {
+				  var err = eval("(" + xhr.responseText + ")");
+				  console.log(err.Message);
+				} 
+            });
+		}
+
+		$( document ).ready(function() {
+			if($( window ).width()<992){
+				$('.collapse').collapse('hide')
+			}
+		});
+		$( window ).resize(function() {
+			if($( window ).width()<992){
+				$('.collapse').collapse('hide')
+			}else{
+				$('.collapse').collapse('show')
+			}
+		});
+		
+		$( "input[name=post_all]" ).change(function() {
+			if($(this).prop("checked")){
+				$('.post_check').prop("checked", true);
+				$("#selectLabel").text("Unselect All");
+				$("#optoutall").prop('disabled', false);
+			}else{
+				$('.post_check').prop("checked", false);
+				$("#selectLabel").text("Select All");
+				$("#optoutall").prop('disabled', true);
+			}
+		});
+		
+		$('#optoutall').on('click',function(){		
+			$("input[name='posts[]']").each(function() {
+				
+				if($(this).is(":checked")){
+					var target = $( '#opt_' + $(this).val() );
+					
+					optOutIn($(this).val(),0,target);
+					$(this).addClass('d-none');
+				}
+				
+				$(this).prop("checked", false);
+				$( "input[name=post_all]" ).prop("checked", false);
+			    
+			});
+		})
+
+		$(document).on('click','.post_opts',function(){
+			var id = $(this).data("postid");
+			var opt_out = $(this).data("value");
+			var target = $(this);
+
+			optOutIn(id,opt_out,target);			
+		});
+
+		function optOutIn(id,opt_out,target){
+			$.ajax({
+				url: "xt_optout.php", 
+				type:"POST",
+				data:{"postid":id, "opt_out":opt_out},
+				success: function(result){
+					if ($(result).data("value") == 1){
+						$('#cont_inf_'+id).css('opacity','0.4');
+						$('#action_edit_'+id).removeAttr("href");
+						$('#action_edit_'+id).css("display",'none');
+						$('#post_'+id).parent().removeClass("d-flex");
+						$('#post_'+id).parent().addClass("d-none");
+					}else{
+						$('#cont_inf_'+id).css('opacity','');
+						$('#action_edit_'+id).attr("href","edit.php?id="+id);	
+						$('#action_edit_'+id).css("display",'');	
+						$('#post_'+id).parent().addClass("d-flex");
+						$('#post_'+id).parent().removeClass("d-none");		
+					}
+					$(target).replaceWith(result);
+				}
+			});
+		}
+
+
+
+		$(document).on('click','.post_optional',function(){
+
+		 	$.ajax({
+				url: "xt_accept_optional_post.php", 
+				type:"POST",
+				data:{"postid":$(this).data("postid")},
+				success: function(result){
+					if(result == '-1'){
+						get_posts($("select[name=sort]").val(),$("select[name=show]").val(),$("#searchPost").val());
+					}else{
+						window.location.href = "/plan-and-publish/social-media/edit.php?id="+result;
+					}
+				}
+			});
+
+		});
+
+		$(document).on('click','#opt_boost',function(){
+			var id = $(this).data("postid");
+			var opt_out = $(this).data("value");
+			var target = $(this);
+			$.ajax({
+				url: "xt_boostout.php", 
+				type:"POST",
+				data:{"postid":id, "opt_out":opt_out},
+				success: function(result){
+					$(target).replaceWith(result);
+				}
+			});
+			
+		});
+		$(document).on('change','.post_check',function(){
+			if($(".post_check:checked").length>0)
+				$("#optoutall").prop('disabled', false);
+			else
+				$("#optoutall").prop("disabled",true);
+		});
+		
+		$(function () {
+		  $('[data-toggle="tooltip"]').tooltip()
+		})
+	</script>
+  </body>
+</html>

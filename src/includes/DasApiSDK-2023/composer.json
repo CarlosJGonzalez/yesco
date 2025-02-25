@@ -1,0 +1,17 @@
+{
+ 	"name": "das_group/php-sdk",
+ 	"description": "DAS PHP SDK",
+ 	"keywords": [
+		"API","PHP","PHP SDK"
+	],
+	"license": "MIT",
+	"type": "project",
+	"require": {
+		"php": ">=7.0"
+	},
+    "autoload": {
+      "psr-4": {
+	"Das\\": "src/"
+      }
+    }
+}
