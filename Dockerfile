@@ -6,7 +6,7 @@ USER www-data
 # Install necessary extensions
 RUN apt-get update && apt-get install -y \
     libpq-dev libzip-dev unzip curl git \
-    && docker-php-ext-install pdo mysql zip
+    && docker-php-ext-install pdo pdo_mysql zip
 
 # Copy application files
 WORKDIR /var/www/html
