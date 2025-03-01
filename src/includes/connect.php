@@ -2,7 +2,8 @@
 require ($_SERVER['DOCUMENT_ROOT']."/includes/MysqliDb.php");
 
 
-$db = new MysqliDb ('localhost', 'root', 'dasflorida', 'yesco_new');
+//$db = new MysqliDb ('db', 'admin', 'GQzF1xo38auaoIUnWSux', 'yesco_new');
+$db = new MysqliDb ('rackspace-application-rds.co8bxehb4baf.us-east-1.rds.amazonaws.com', 'admin', 'GQzF1xo38auaoIUnWSux', 'yesco_new');
 
 $token_api = '$2y$10$w/0VvnOoj5fvGA7alcDkROYWd6d2aeeZrUK2fduL9EFNen5RIRSfG';
 const CLIENT_NAME = "Yesco";

@@ -2,8 +2,8 @@ FROM php:7.4.10-apache AS final
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Install necessary extensions
-RUN docker-php-ext-install pdo pdo_mysql
-
+###RUN docker-php-ext-install pdo pdo_mysql mysqli && docker-php-ext-enable mysqli
+RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
 # Copy application files
 WORKDIR /var/www/html
 COPY ./src /var/www/html

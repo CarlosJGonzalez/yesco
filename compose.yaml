@@ -1,0 +1,30 @@
+services:
+  server:
+    build:
+      context: .
+    ports:
+      - 9000:80
+    environment:
+      - PASSWORD_FILE_PATH=/run/secrets/db-password
+      - DB_HOST=rackspace-application-rds.co8bxehb4baf.us-east-1.rds.amazonaws.com
+      - DB_NAME=yesco_new
+      - DB_USER=admin
+  db:
+    image: mysql
+    restart: always
+    user: root 
+    secrets:
+      - db-password
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+      - MYSQL_DATABASE=yesco_new
+    expose:
+      - 3306
+
+volumes:
+  db-data:
+secrets:
+  db-password:
+    file: password.txt
