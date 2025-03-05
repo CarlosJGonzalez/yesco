@@ -1,14 +1,17 @@
 <?php
-require ($_SERVER['DOCUMENT_ROOT']."/includes/MysqliDb.php");
+try{
+    require ($_SERVER['DOCUMENT_ROOT']."/includes/MysqliDb.php");
 
-
-//$db = new MysqliDb ('db', 'admin', 'GQzF1xo38auaoIUnWSux', 'yesco_new');
-$db = new MysqliDb ('rackspace-application-rds.co8bxehb4baf.us-east-1.rds.amazonaws.com', 'admin', 'GQzF1xo38auaoIUnWSux', 'yesco_new');
-
+    $db = new MysqliDb ('rackspace-application-rds.co8bxehb4baf.us-east-1.rds.amazonaws.com', 'admin', 'GQzF1xo38auaoIUnWSux', 'yesco_new', '3306');
+    //$db = new MysqliDb ('web1rs.das-group.com', 'root', 'dasflorida', 'yesco_new');
+}catch( Throwable $thro ){
+    echo $thro->getMessage();
+    die();
+}
 $token_api = '$2y$10$w/0VvnOoj5fvGA7alcDkROYWd6d2aeeZrUK2fduL9EFNen5RIRSfG';
 const CLIENT_NAME = "Yesco";
 const CLIENT_URL = "https://www.yesco.com/";
-const LOCAL_CLIENT_URL = "https://localyesco.com/";
+const LOCAL_CLIENT_URL = "https://localyesco-prod.marketing.com:80";
 const SHOP_CLIENT_URL = "https://www.yesco.com/";
 
 //https://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes/1270960#1270960
