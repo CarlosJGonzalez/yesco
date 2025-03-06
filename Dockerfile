@@ -1,4 +1,4 @@
-FROM php:7.4-apache
+FROM php:7.4-apache as final
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Install necessary extensions
