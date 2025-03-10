@@ -1,4 +1,10 @@
-
+<?php
+	if( !isset( $active_location ) || !isset( $active_location['storeid'] ) ){
+		$active_location['storeid'] = null;
+		$active_location['companyname'] = null;
+		$active_location['rep'] = 'unknown';
+	}
+?>
 <div class="d-md-none bg-blue">
 	<div class="p-2 text-center">
 		<a href=""><img src="/img/FP-logo-white.png" alt="Yes We're Open" class="img-fluid"></a>
@@ -15,7 +21,7 @@
 			<?php if(roleHasPermission('general_permission', $_SESSION['role_permissions'])){ ?>
 			<div class="dropdown d-inline-block justify-content-center ml-2 change-location">
 				<div class="cursor-pointer d-flex align-items-center" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-offset="10,20">
-					<span class="small bg-white text-dark border py-1 px-2 rounded-pill"><?php echo isset($active_location) ? $active_location['companyname']." (".$active_location['storeid'].")" : "No Location Selected"; ?></span>
+					<span class="small bg-white text-dark border py-1 px-2 rounded-pill"><?php echo ( isset($active_location) && isset( $active_location['companyname'] ) ) ? $active_location['companyname']." (".$active_location['storeid'].")" : "No Location Selected"; ?></span>
 					<i class="fas fa-map-marker-alt fa-lg ml-3 text-dark-blue" id="changeLocationButton"></i>
 				</div>
 			  <div class="dropdown-menu p-2" aria-labelledby="changeLocationButton">
@@ -46,7 +52,7 @@
 		<?php if(roleHasPermission('general_permission', $_SESSION['role_permissions'])){ ?>
 		<li class="list-inline-item text-nowrap d-flex align-items-stretch mr-0">
 		  <div class="dropdown show fa-lg d-flex align-items-stretch">
-			  <a class="text-dark nav-link d-flex align-items-center px-1 px-sm-3" href="#" role="button" id="dropdownMenuNote" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-storeid="<?php echo $_SESSION['storeid']; ?>" data-usertype="<?php echo $_SESSION['view']; ?>">
+			  <a class="text-dark nav-link d-flex align-items-center px-1 px-sm-3" href="#" role="button" id="dropdownMenuNote" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-storeid="<?php echo ( isset( $_SESSION['storeid'] ) ? $_SESSION['storeid'] : '' ); ?>" data-usertype="<?php echo $_SESSION['view']; ?>">
 				  <span class="fa-layers fa-fw">
 				  	<?php 
 					if($_SESSION['view']=="user"){
@@ -123,19 +129,22 @@
 				  <div class="text-center px-2 py-3">
 					<span class="d-block font-weight-bold"><?php echo $_SESSION['name']; ?></span>
 					  <small class="d-block mb-2"><?php echo isset($active_location) ? "Fully Promoted<br>".$active_location['companyname'] : "Admin View"; ?></small>
-					  <?php if ($active_location['rep'] != ''){
+					  <?php 
+					  if ( $active_location && isset( $active_location['rep'] ) && $active_location != '' ){
 						$db->where ("id", $active_location['rep']);
 						$rep = $db->getOne ("reps");
-						$repName = $rep['name'];
-						$repEmail = $rep['email'];
-						$repPhoneExt = $rep['phone'];
-						if ($repName != '' && $repEmail != '' && $repPhoneExt != ''){
-					  ?>
-					        <small class="d-block"><b>Rep Name:</b> <?php echo $repName; ?></small>
-							<small class="d-block"><a href="tel:954-893-8112;<?php echo $repPhoneExt; ?>">954-893-8112 x <?php echo $repPhoneExt; ?></a></small>
-							<small class="d-block">For dashboard issues, contact Support at <br> <b><?php echo $repEmail; ?></b></small>
-					  <?php 
-						} 
+						if( $rep ){
+							$repName = $rep['name'];
+							$repEmail = $rep['email'];
+							$repPhoneExt = $rep['phone'];
+							if ($repName != '' && $repEmail != '' && $repPhoneExt != ''){
+						?>
+								<small class="d-block"><b>Rep Name:</b> <?php echo $repName; ?></small>
+								<small class="d-block"><a href="tel:954-893-8112;<?php echo $repPhoneExt; ?>">954-893-8112 x <?php echo $repPhoneExt; ?></a></small>
+								<small class="d-block">For dashboard issues, contact Support at <br> <b><?php echo $repEmail; ?></b></small>
+						<?php 
+							} 
+						}
 					   }
 					  ?>
 				  </div>

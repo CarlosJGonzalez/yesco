@@ -1,22 +1,49 @@
 <?php 
 session_start();
+/*********************************************
+ * Loading the environment file
+ */
+include_once $_SERVER['DOCUMENT_ROOT']."/autoload.php";
 include ($_SERVER['DOCUMENT_ROOT']."/includes/connect.php");
 include ($_SERVER['DOCUMENT_ROOT']."/includes/functions.php");
+ini_set( 'display_errors', 0 );
+ini_set( 'display_startup_errors', 0 );
+error_reporting(0);
 
-$_SESSION['database'] ="yesco_new";
-$_SESSION['client'] ='1482';
+$logsDb = new MysqliDb('rackspace-applications-rds.co8bxehb4baf.us-east-1.rds.amazonaws.com', 'admin', 'GQzF1xo38auaoIUnWSux', 'logs');
+
+use src\DotEnv;
+( new DotEnv( $_SERVER['DOCUMENT_ROOT'] . '/.env') )->load();
+
+/********************************************
+ * Pulling constants from .env
+ */
+if( getenv( 'DAS_CLIENT_ID' ) ) {
+	$_SESSION['client'] = getenv( 'DAS_CLIENT_ID' );
+}else{
+	$_SESSION['client'] = -1;
+	$_SESSION['error'] = 'The DAS_CLIENT_ID constant was not found in the environment file';
+}
+
+if( getenv( 'DATABASE_NAME' ) ){
+	$_SESSION['database'] = getenv( 'DATABASE_NAME' );
+}else{
+	$_SESSION['error'] = 'The DATABASE_NAME constant was not found in the environment file';
+	$_SESSION['database'] = '';
+}
+
 
 // set store id by parameter
-if(!empty($_GET['storeid'])){
+if(isset($_GET['storeid']) && !empty($_GET['storeid'])){
 	$_SESSION['storeid'] = $db->escape($_GET['storeid']);
 }
 // set view by parameter
-if(!empty($_GET['view']) && in_array($_GET['view'],array("user","das_admin"))){
+if(isset($_GET['view']) && !empty($_GET['view']) && in_array($_GET['view'],array("user","das_admin"))){
 	$_SESSION['view'] = $db->escape($_GET['view']);
 }
 // set active location by parameter
 
-if($_SESSION['view']=="user"){
+if($_SESSION && isset($_SESSION['view']) && $_SESSION['view']=="user"){
 	$db->where("storeid",$_SESSION['storeid']);
 	$active_location = $db->getOne("locationlist");
 	$_SESSION['location_name'] = $active_location['companyname'];

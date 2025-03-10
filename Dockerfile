@@ -16,5 +16,6 @@ RUN echo "short_open_tag=On"
 RUN chmod -R 755 /var/www/html/uploads && chown -R www-data:www-data /var/www/html/uploads
 RUN chown -R 755 /var/www/html/img && chown -R www-data:www-data /var/www/html/img
 
+VOLUME ["/var/www/html/uploads", "/var/www/html/img"]
 # Expose port 80 for web traffic 
 EXPOSE 80

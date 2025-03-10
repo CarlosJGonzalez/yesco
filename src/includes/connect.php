@@ -1,17 +1,36 @@
 <?php
-try{
-    require ($_SERVER['DOCUMENT_ROOT']."/includes/MysqliDb.php");
+require ($_SERVER['DOCUMENT_ROOT']."/includes/MysqliDb.php");
+include_once $_SERVER['DOCUMENT_ROOT'].'/autoload.php';
+use src\DotEnv;
+( new DotEnv( $_SERVER['DOCUMENT_ROOT'] . '/.env' ) )->load();
 
-    $db = new MysqliDb ('rackspace-application-rds.co8bxehb4baf.us-east-1.rds.amazonaws.com', 'admin', 'GQzF1xo38auaoIUnWSux', 'yesco_new', '3306');
-    //$db = new MysqliDb ('web1rs.das-group.com', 'root', 'dasflorida', 'yesco_new');
-}catch( Throwable $thro ){
-    echo $thro->getMessage();
-    die();
+if( 
+    getenv( 'DATABASE_NAME') && 
+    getenv( 'DATABASE_SERVER_NAME' ) &&
+    getenv( 'DATABASE_USER_NAME' ) &&
+    getenv( 'DATABASE_PWD' )
+){
+    $db_name        = getenv( 'DATABASE_NAME' );
+    $server_name    = getenv( 'DATABASE_SERVER_NAME' );
+    $user_name      = getenv( 'DATABASE_USER_NAME' );
+    $pwd            = getenv( 'DATABASE_PWD' );
+
+    $db = new MysqliDb ( $server_name, $user_name, $pwd, $db_name );
+}else{
+    $db = null;
+    $_SESSION['error'] = 'Database setting is missing';
 }
-$token_api = '$2y$10$w/0VvnOoj5fvGA7alcDkROYWd6d2aeeZrUK2fduL9EFNen5RIRSfG';
+
+if( getenv( 'DAS_API_TOKEN' ) ){
+    $token_api = getenv( 'DAS_API_TOKEN' );
+}else{
+    $token_api = null;
+    $_SESSION['error'] = 'DAS_API_TOKEN was not found.';
+}
+
 const CLIENT_NAME = "Yesco";
 const CLIENT_URL = "https://www.yesco.com/";
-const LOCAL_CLIENT_URL = "https://localyesco-prod.marketing.com:80";
+const LOCAL_CLIENT_URL = "https://localyesco.com/";
 const SHOP_CLIENT_URL = "https://www.yesco.com/";
 
 //https://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes/1270960#1270960

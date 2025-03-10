@@ -62,14 +62,14 @@
 					</a>
 					<div class="collapse" id="submenuPsub1" aria-expanded="false">
 						<ul class="flex-column nav">
-							<?php if(roleHasPermission('show_promote_link', $_SESSION['role_permissions']) && ($active_location['promote_platform'] == 'mc' || $active_location['promote_platform'] == '')){ ?>
+							<?php if(roleHasPermission('show_promote_link', $_SESSION['role_permissions']) && $active_location && isset( $active_location['promote_platform'] ) && ($active_location['promote_platform'] == 'mc' || $active_location['promote_platform'] == '')){ ?>
 							<li class="nav-item">
 								<a class="nav-link text-white pl-4 py-1 bg-dark-blue-hover collapsed" href="/promote/">
 									<i class="fas fa-mail-bulk fa-fw"></i> Campaign Management
 								</a>
 							</li>
 							<?php } ?>
-							<?php if(roleHasPermission('show_promote_link', $_SESSION['role_permissions']) && $active_location['promote_platform'] == 'cc'){ ?>
+							<?php if(roleHasPermission('show_promote_link', $_SESSION['role_permissions']) && $active_location && isset( $active_location['promote_platform'] ) && ($active_location['promote_platform'] == 'cc') ){ ?>
 							<li class="nav-item">
 								<a class="nav-link text-white pl-4 py-1 bg-dark-blue-hover collapsed" href="/promote-cc/">
 									<i class="fas fa-mail-bulk fa-fw"></i> Campaign Management
@@ -144,12 +144,13 @@
 									</a>
 									<div class="collapse" id="submenu2sub1" aria-expanded="false">
 										<ul class="flex-column nav">
-											<?php if(roleHasPermission('show_campaign_performance', $_SESSION['role_permissions'])){ ?>
+											
 												<li class="nav-item bg-dark-blue-hover">
 													<a class="nav-link text-white pl-5 py-1 bg-dark-blue-hover" href="/track/campaign-stats/keyword_performance.php">
 														<i class="fas fa-keyboard fa-fw"></i> Search Terms 
 													</a>
 												</li>
+											<?php if(roleHasPermission('show_campaign_performance', $_SESSION['role_permissions'])){ ?>
 												<li class="nav-item bg-dark-blue-hover">
 													<a class="nav-link text-white pl-5 py-1 bg-dark-blue-hover" href="/track/campaign-stats/geo_performance.php">
 														<i class="fas fa-location-arrow fa-fw"></i> Geo Performance
@@ -360,7 +361,7 @@
 </div>
 <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right bg-white border-left" id="cbp-spmenu-s2">
 	<?php
-		if($_SESSION['storeid'] > 0 && $_SESSION['view'] == 'user'){
+		if($_SESSION && isset( $_SESSION['storeid'] ) && $_SESSION['storeid'] > 0 && $_SESSION['view'] == 'user'){
 			$cols = array ("email_notification", "notifications");
 			$db->where ("storeid", $_SESSION['storeid']);
 			$notification = $db->getOne ("locationlist", null, $cols);
@@ -380,7 +381,7 @@
 				</small>
 
 				<label class="switch mb-0 ml-auto">
-				  <input type="checkbox" name="notifications_check" value="<?php echo $notification['notifications']; ?>" <?php if ($notification['notifications'] == '1') echo "checked"; ?>>
+				  <input type="checkbox" name="notifications_check" value="<?php echo ($notification && isset( $notification['notifications'] ) ) ? $notification['notifications'] : 0; ?>" <?php if ( $notification && isset( $notification['notifications'] ) && $notification['notifications'] == '1') echo "checked"; ?>>
 				  <span class="slider round"></span>
 				</label>
 
@@ -396,7 +397,7 @@
 				</small>
 			</div>
 			<div>
-				<input type="text" name="email_notification" value="<?php echo $notification['email_notification']; ?>" class="form-control" required>
+				<input type="text" name="email_notification" value="<?php echo (  $notification && isset( $notification['email_notification'] ) ) ? $notification['email_notification'] : ''; ?>" class="form-control" required>
 			</div>
 			<div>
 				<small class="text-muted"><b>Note: </b>For multiple emails, separate with a comma. (ex. test@test.com,test2@test.com)</small>
@@ -404,7 +405,7 @@
 		</div>
 		<div class="mt-3">
 			<input type="submit" class="btn save bg-dark-blue text-white btn-sm px-4 rounded-pill" id="submitNotificationSett" value="Save">
-			<input type="hidden" name="storeid_notifications_sett" value="<?php echo $_SESSION['storeid']; ?>">
+			<input type="hidden" name="storeid_notifications_sett" value="<?php echo ( isset( $_SESSION['storeid'] ) ? $_SESSION['storeid'] : '' ); ?>">
 			<input type="hidden" name="email_notifications_sett" value="<?php echo $_SESSION['email']; ?>">
 			<input type="hidden" name="user_view_notifications_sett" value="<?php echo $_SESSION['view']; ?>">
 		</div>
