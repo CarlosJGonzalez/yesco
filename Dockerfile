@@ -12,9 +12,9 @@ COPY ./local/etc/php /usr/local/etc/php/
 # Enable short_open_tag
 RUN echo "short_open_tag=On"
 
-WORKDIR /var/www/html
-RUN chmod -R 755 /uploads && chown -R www-data:www-data /uploads
-RUN chown -R 755 /img && chown -R www-data:www-data /img
+#WORKDIR /var/www/html
+#RUN chmod -R 755 /uploads && chown -R www-data:www-data /uploads
+#RUN chown -R 755 /img && chown -R www-data:www-data /img
 # Expose port 80 for web traffic 
 
 EXPOSE 80
