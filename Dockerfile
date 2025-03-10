@@ -4,6 +4,7 @@ FROM php:7.4-apache AS final
 RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
 RUN a2enmod rewrite
 
+
 # Copy application files
 COPY ./src /var/www/html/
 COPY ./local/etc/php /usr/local/etc/php/
